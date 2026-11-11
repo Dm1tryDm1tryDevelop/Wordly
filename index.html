@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Угадай слово</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="theme-color" content="#151d26">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Угадай слово">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+:root{color-scheme:dark;--ink:#151d26;--ivory:#efe6d2;--text:#2a2218;--mut:#8f98a6;--brass:#d1a23b;--serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+--grain:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--ink);color:#e9e4d6;font:500 15px/1.25 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overscroll-behavior:none;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:var(--grain),radial-gradient(120% 70% at 50% 0,#233242,transparent 70%),radial-gradient(100% 50% at 50% 100%,#0d131a,transparent 70%)}
+#app{height:100dvh;max-width:500px;margin:0 auto;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 12px calc(env(safe-area-inset-bottom) + 10px)}
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 2px;border-bottom:1px solid #ffffff17}
+h1{margin:0;font:700 21px var(--serif);letter-spacing:.05em;color:var(--ivory)}
+h1 span{color:var(--brass);font-style:italic;margin-left:.3em}
+nav{display:flex;gap:6px}
+button{font:600 11px system-ui,sans-serif;letter-spacing:.07em;text-transform:uppercase;color:#e9e4d6;background:none;border:1px solid #efe6d247;border-radius:5px;padding:8px 10px;cursor:pointer}
+button:active{background:#ffffff14}
+button:disabled{opacity:.3}
+#bar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 2px 0}
+#tabs{display:flex;gap:18px}
+#tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;padding:6px 0;color:var(--mut)}
+#tabs button.on{color:var(--ivory);border-bottom-color:var(--brass)}
+#info{font:600 11px system-ui;letter-spacing:.07em;text-transform:uppercase;color:var(--brass);white-space:nowrap}
+#hint{min-height:40px;padding:12px 6px 0;text-align:center;color:#c9c2ae;font:italic 15px var(--serif)}
+#main{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+#board{display:grid;gap:6px;width:min(92vw,calc((100dvh - 410px)*5/6),340px)}
+.r{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;perspective:700px}
+.t{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:7px;background:#00000038;border:1px solid #ffffff17;box-shadow:inset 0 2px 5px #00000073;color:var(--text);font:700 clamp(24px,7.4dvh,34px) var(--serif);text-transform:uppercase;transition:border-color .15s}
+.t.f{background:var(--grain),linear-gradient(#f4ecd9,#e3d9c1);border-color:#cbbf9f;box-shadow:0 2px 0 #b3a685,0 6px 9px #0006}
+.t.c{background:var(--grain),linear-gradient(#5b9a68,#468556);border-color:transparent;color:#f6f1e3;box-shadow:0 2px 0 #2d5a39,0 6px 9px #0006}
+.t.p{background:var(--grain),linear-gradient(#dcb554,#bf9431);border-color:transparent;color:#2a1d05;box-shadow:0 2px 0 #7e5f18,0 6px 9px #0006}
+.t.a{background:var(--grain),linear-gradient(#69717e,#4d5461);border-color:transparent;color:#e8e4d8;box-shadow:0 2px 0 #30363f,0 6px 9px #0006}
+.t.n{border-color:#efe6d28c;animation:cur 1.2s ease-in-out infinite}
+.t.pop{animation:pop .2s cubic-bezier(.3,1.5,.5,1)}
+.t.flip{animation:flip .55s ease both}
+.t.win{animation:win .6s ease both}
+.r.shake{animation:shake .4s}
+@keyframes cur{50%{border-color:#efe6d233}}
+@keyframes pop{0%{transform:scale(.86)}60%{transform:scale(1.07)}100%{transform:scale(1)}}
+@keyframes flip{50%{transform:rotateX(90deg)}}
+@keyframes win{0%,100%{transform:translateY(0)}40%{transform:translateY(-12px)}}
+@keyframes shake{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+#pw{display:flex;gap:8px;justify-content:center;padding-top:10px}
+#pw button{border-color:#d1a23b8c;color:#e6c777;white-space:nowrap;padding:8px 8px;font-size:10px;letter-spacing:.04em}
+#kb{display:grid;gap:7px;padding-top:12px;touch-action:none}
+.kr{display:flex;gap:5px;justify-content:center}
+.kr.m{padding:0 5%}
+.k{flex:1;height:clamp(44px,7.2dvh,56px);padding:0;border:0;border-radius:6px;background:var(--grain),linear-gradient(#f1e9d6,#ddd2b8);color:var(--text);font:700 18px var(--serif);text-transform:uppercase;letter-spacing:0;box-shadow:0 2px 0 #a99d7e,0 5px 7px #0005}
+.k:active{transform:translateY(2px);box-shadow:0 0 0 #a99d7e,0 2px 4px #0005;background:var(--grain),linear-gradient(#f1e9d6,#ddd2b8)}
+.k.w{flex:1.7;font:700 10px system-ui;letter-spacing:.06em;background:var(--grain),linear-gradient(#dcb554,#bd9230);color:#2a1d05;box-shadow:0 2px 0 #7e5f18,0 5px 7px #0005}
+.k.w[data-k=Del]{background:var(--grain),linear-gradient(#69717e,#4d5461);color:#efe6d2;box-shadow:0 2px 0 #30363f,0 5px 7px #0005}
+.k.c{background:var(--grain),linear-gradient(#5b9a68,#468556);color:#f6f1e3;box-shadow:0 2px 0 #2d5a39,0 5px 7px #0005}
+.k.p{background:var(--grain),linear-gradient(#dcb554,#bf9431);color:#2a1d05;box-shadow:0 2px 0 #7e5f18,0 5px 7px #0005}
+.k.a{background:#2a313b;color:#6d7684;box-shadow:0 2px 0 #1a2028}
+#toast{position:fixed;top:calc(env(safe-area-inset-top) + 70px);left:50%;transform:translateX(-50%);background:var(--ivory);color:var(--text);padding:10px 16px;border-radius:6px;font:600 14px system-ui;opacity:0;pointer-events:none;transition:opacity .2s;box-shadow:0 8px 22px #0008;z-index:6;white-space:nowrap}
+#toast.on{opacity:1}
+dialog{background:#1b2530;color:#e9e4d6;border:1px solid #ffffff1f;border-radius:10px;width:min(350px,92vw);padding:22px;box-shadow:0 24px 60px #000b}
+dialog::backdrop{background:#080c11b3}
+dialog h2{margin:0 0 16px;text-align:center;font:700 21px var(--serif);color:var(--ivory)}
+.s{display:grid;grid-template-columns:repeat(5,1fr);text-align:center;margin-bottom:18px}
+.s b{display:block;font:700 28px var(--serif);color:var(--ivory)}.s span{font:600 9px system-ui;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.d{display:grid;grid-template-columns:14px 1fr;gap:6px;align-items:center;margin:5px 0;font-size:13px;color:var(--mut)}
+.d i{display:block;min-width:24px;background:#444a55;color:#e9e4d6;border-radius:3px;padding:3px 7px;text-align:right;font-style:normal}
+.d i.h{background:#4f8a5b}
+#end{text-align:center;color:#d8d0bb;font:italic 16px/1.35 var(--serif);margin:16px 0 0}
+dialog .row{display:flex;gap:8px;margin-top:18px}
+dialog .row button{flex:1;padding:10px 6px}
+dialog #dn{background:var(--brass);border-color:var(--brass);color:#2a1d05}
+</style>
+</head>
+<body>
+<div id="app">
+<header><h1>Угадай<span>слово</span></h1><nav><button id="bs">Статистика</button><button id="bn">Новая игра</button></nav></header>
+<div id="bar"><div id="tabs"><button data-m="c">Классика</button><button data-m="d">Слово дня</button><button data-m="b">Блиц</button></div><span id="info"></span></div>
+<div id="hint"></div>
+<div id="main"><div id="board"></div></div>
+<div id="pw"><button id="bh">Подсказка</button><button id="pr">Открыть букву · 3</button><button id="pc">Убрать буквы · 2</button></div>
+<div id="kb"></div>
+</div>
+<div id="toast"></div>
+<canvas id="cf" style="position:fixed;inset:0;pointer-events:none;z-index:5"></canvas>
+<dialog id="dlg"><h2>Статистика</h2><div class="s" id="sn"></div><div id="sd"></div><p id="end"></p><div class="row"><button id="dc">Закрыть</button><button id="ds"></button><button id="dn">Новая игра</button></div></dialog>
+<script>
+const WORDS={above:"выше|то, что находится выше чего-то",after:"после|позже чего-то",again:"снова|ещё один раз",alone:"один|без других людей",angry:"злой|очень раздражённый",apple:"яблоко|круглый красный или зелёный фрукт",beach:"пляж|песчаное место у моря",begin:"начинать|делать первый шаг",black:"чёрный|цвет угля",board:"доска|плоский кусок дерева или пластика",bread:"хлеб|выпечка из муки",break:"ломать|разбить на части",bring:"приносить|нести что-то сюда",brown:"коричневый|цвет шоколада",build:"строить|собирать из частей",carry:"нести|держать и переносить",catch:"ловить|схватить то, что движется",chair:"стул|сиденье для одного человека",child:"ребёнок|маленький мальчик или девочка",class:"класс|группа учеников",clean:"чистый|без грязи",clock:"часы|показывают время",close:"близко|рядом, а ещё — закрывать",cloud:"облако|белое или серое пятно на небе",count:"считать|называть числа по порядку",cover:"накрывать|положить что-то сверху",daily:"ежедневный|происходит каждый день",dance:"танцевать|двигаться под музыку",dream:"сон|картинки, которые видишь во сне",drink:"пить|глотать жидкость",early:"рано|раньше обычного времени",earth:"Земля|планета, на которой мы живём",empty:"пустой|внутри ничего нет",enjoy:"наслаждаться|получать удовольствие",enter:"входить|заходить внутрь",every:"каждый|все без исключения",field:"поле|открытое место с травой или посевами",fight:"драться|бороться с кем-то",final:"последний|идущий в самом конце",floor:"пол|то, по чему ходят в доме",fresh:"свежий|новый или недавно сделанный",fruit:"фрукт|сладкая еда с дерева",funny:"смешной|от него смеются",giant:"великан|очень большой",glass:"стекло|прозрачный материал для окон",green:"зелёный|цвет травы",guess:"догадываться|отвечать наугад",guest:"гость|приглашённый в дом человек",guide:"проводник|тот, кто показывает дорогу",happy:"счастливый|чувствующий радость",heart:"сердце|орган, который качает кровь",heavy:"тяжёлый|много весит",honey:"мёд|сладкий продукт пчёл",horse:"лошадь|большое животное, на нём ездят верхом",hotel:"гостиница|место, где живут в поездке",house:"дом|здание, где живут люди",image:"изображение|картинка",judge:"судья|решает, кто прав",juice:"сок|напиток из фруктов",knife:"нож|инструмент, чтобы резать еду",large:"большой|крупный",laugh:"смеяться|издавать звуки, когда смешно",learn:"учиться|получать новые знания",lemon:"лимон|кислый жёлтый фрукт",light:"свет|делает предметы видимыми",local:"местный|из ближайшего района",lunch:"обед|еда посреди дня",magic:"магия|фокусы и странные силы",maybe:"может быть|возможно",metal:"металл|твёрдый блестящий материал, как железо",money:"деньги|на них покупают вещи",mouse:"мышь|зверёк или устройство для компьютера",mouth:"рот|часть лица, чтобы есть",movie:"фильм|его показывают в кинотеатре",music:"музыка|звуки песен",never:"никогда|ни в какое время",night:"ночь|время, когда темно",noise:"шум|громкий неприятный звук",ocean:"океан|очень большое море",order:"заказ|просьба принести еду в ресторане",paper:"бумага|тонкий материал для письма",party:"вечеринка|праздник с друзьями и едой",phone:"телефон|устройство для звонков",pizza:"пицца|круглое итальянское блюдо с сыром",place:"место|где-то находится",plane:"самолёт|летательный аппарат с крыльями",plant:"растение|живое существо, растущее в земле",point:"указывать|показывать пальцем",price:"цена|сколько денег нужно заплатить",proud:"гордый|доволен тем, что сделал",queen:"королева|женщина-правитель",quick:"быстрый|скорый",quiet:"тихий|почти без шума",radio:"радио|устройство для передач",reach:"достигать|добираться до места",ready:"готовый|подготовлен к делу",right:"правильный|верный, а ещё — правый",river:"река|большой водный поток",robot:"робот|машина, выполняющая задачи",round:"круглый|в форме круга",salad:"салат|холодное блюдо из овощей",serve:"подавать|давать еду кому-то",shape:"форма|вид предмета",share:"делиться|отдавать часть другим",sharp:"острый|хорошо режет",shirt:"рубашка|одежда для верхней части тела",shoes:"обувь|то, что надевают на ноги",short:"короткий|не длинный",skill:"навык|умение хорошо что-то делать",sleep:"спать|отдыхать с закрытыми глазами",small:"маленький|небольшой",smile:"улыбка|радостное выражение лица",speak:"говорить|разговаривать",sport:"спорт|игра, требующая силы и ловкости",stand:"стоять|быть на ногах",start:"старт|момент, с которого всё начинается",store:"магазин|место, где продают товары",storm:"буря|плохая погода с ветром и дождём",story:"история|рассказ для людей",study:"изучать|узнавать о предмете",sugar:"сахар|сладкая белая добавка к еде",sunny:"солнечный|залитый светом солнца",sweet:"сладкий|на вкус как сахар",table:"стол|мебель с плоской поверхностью",taste:"вкус|ощущение от еды",teach:"учить|помогать другим узнавать новое",thank:"благодарить|говорить спасибо",thick:"толстый|широкий от одной стороны до другой",throw:"бросать|отправлять по воздуху",tiger:"тигр|большая полосатая дикая кошка",today:"сегодня|этот день",tooth:"зуб|твёрдая белая часть рта",touch:"трогать|чувствовать рукой",towel:"полотенце|ткань, чтобы вытираться",tower:"башня|высокое узкое здание",train:"поезд|ездит по рельсам",trust:"доверять|верить, что человек честен",truck:"грузовик|большая машина для грузов",uncle:"дядя|брат отца или матери",usual:"обычный|нормальный",visit:"навещать|ходить в гости",voice:"голос|звук, когда говоришь",waste:"тратить зря|плохо использовать",watch:"смотреть|внимательно наблюдать",water:"вода|прозрачная жидкость, её пьют",white:"белый|цвет снега",woman:"женщина|взрослая особа женского пола",world:"мир|планета и все её люди",write:"писать|выводить слова на бумаге",young:"молодой|не старый"};
+const LIST=Object.keys(WORDS),$=s=>document.querySelector(s),SK='wg-stats';
+const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
+const put=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+let st=Object.assign({p:0,w:0,s:0,m:0,d:[0,0,0,0,0,0],c:3,b:0,snd:1},load(SK,{}));
+let g,mode='c',cur='',busy=false,tmr=null;
+const bd=$('#board'),kb=$('#kb'),dlg=$('#dlg'),tabs=[...document.querySelectorAll('#tabs button')];
+const day=()=>Math.floor(Date.now()/864e5),dailyWord=()=>LIST[(day()*2654435761>>>0)%LIST.length];
+const over=x=>{x=x||g;return x.won||x.guesses.length==6};
+const keep=()=>{if(mode!='b')put('wg-g-'+mode,g)};
+
+let ac;
+function tone(f,d,t){if(!st.snd)return;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),a=ac.createGain(),s=ac.currentTime+(t||0);d=d||.12;o.frequency.value=f;a.gain.setValueAtTime(.06,s);a.gain.exponentialRampToValueAtTime(.0001,s+d);o.connect(a).connect(ac.destination);o.start(s);o.stop(s+d)}catch(e){}}
+const vib=n=>{if(st.snd&&navigator.vibrate)navigator.vibrate(n)};
+
+bd.innerHTML='<div class="r">'.concat('<div class="t"></div>'.repeat(5),'</div>').repeat(6);
+const rows=[...bd.children];
+[[..."qwertyuiop"],[..."asdfghjkl"],["Enter",..."zxcvbnm","Del"]].forEach((r,i)=>{
+const d=document.createElement('div');d.className='kr'+(i==1?' m':'');
+r.forEach(k=>{const b=document.createElement('button');b.className='k'+(k.length>1?' w':'');b.dataset.k=k;b.textContent=k=='Enter'?'Ввод':k=='Del'?'Стереть':k;d.appendChild(b)});kb.appendChild(d)});
+
+function score(w,a){const r=Array(5).fill('a'),n={};
+for(let i=0;i<5;i++)w[i]==a[i]?r[i]='c':n[a[i]]=(n[a[i]]||0)+1;
+for(let i=0;i<5;i++)if(r[i]!='c'&&n[w[i]]>0){r[i]='p';n[w[i]]--}return r}
+
+function pick(){let a;do a=LIST[Math.random()*LIST.length|0];while(g&&a==g.ans);return a}
+const fresh=m=>({m,ans:m=='d'?dailyWord():pick(),guesses:[],hint:false,won:false,done:false,rev:{},out:[],day:day(),t:90,sc:0,live:false});
+
+function paintKeys(){const m={};
+g.guesses.forEach(w=>score(w,g.ans).forEach((s,i)=>{const o=m[w[i]];if(o=='c'||(o=='p'&&s=='a'))return;m[w[i]]=s}));
+g.out.forEach(l=>{if(!m[l])m[l]='a'});
+kb.querySelectorAll('.k').forEach(k=>{k.classList.remove('c','p','a');if(m[k.dataset.k])k.classList.add(m[k.dataset.k])})}
+
+function drawRow(i,w,res){[...rows[i].children].forEach((t,j)=>{t.textContent=w[j]||'';t.className='t'+(w[j]?' f':'')+(res?' '+res[j]:'')})}
+function info(){$('#info').textContent=(mode=='b'?g.t+'с · '+g.sc+' слов · ':'')+'Монеты '+st.c}
+function draw(){rows.forEach((r,i)=>drawRow(i,g.guesses[i]||(i==g.guesses.length?cur:''),g.guesses[i]&&score(g.guesses[i],g.ans)));
+paintKeys();
+const ar=rows[g.guesses.length];if(ar&&!over()&&!(mode=='b'&&!g.live)&&ar.children[cur.length])ar.children[cur.length].classList.add('n');
+const rv=[0,1,2,3,4].map(i=>g.rev[i]||'_').join(' ').toUpperCase();
+$('#hint').textContent=(g.hint?'Подсказка: '+WORDS[g.ans].split('|')[1]:'')+(Object.keys(g.rev).length?(g.hint?'   ':'')+rv:'');
+const off=over()||(mode=='b'&&!g.live);
+$('#bh').disabled=off;$('#pr').disabled=off||st.c<3;$('#pc').disabled=off||st.c<2;info()}
+
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),1500)}
+
+function setMode(m){clearInterval(tmr);mode=m;
+let s=m=='b'?null:load('wg-g-'+m,null);
+if(m=='d'&&s&&s.day!=day())s=null;
+g=s&&WORDS[s.ans]?s:fresh(m);cur='';busy=false;
+if(m=='b'){g.live=true;tmr=setInterval(tick,1000)}
+tabs.forEach(b=>b.classList.toggle('on',b.dataset.m==m));keep();draw()}
+function tick(){if(g.live&&--g.t<=0){g.t=0;endBlitz()}info()}
+function newGame(){if(mode=='d')return toast('Новое слово дня будет завтра');
+if(mode=='b')return setMode('b');
+g=fresh('c');cur='';busy=false;keep();draw()}
+
+function type(k){if(busy||over()||(mode=='b'&&!g.live))return;
+if(k=='Del')cur=cur.slice(0,-1);
+else if(k=='Enter')return submit();
+else if(/^[a-z]$/.test(k)&&cur.length<5)cur+=k;
+vib(8);clack(1400+Math.random()*600);drawRow(g.guesses.length,cur);
+const rc=[...rows[g.guesses.length].children];
+if(k!='Del'&&cur.length){const t=rc[cur.length-1];void t.offsetWidth;t.classList.add('pop')}
+rc.forEach((t,i)=>t.classList.toggle('n',i==cur.length&&cur.length<5))}
+
+function submit(){const r=rows[g.guesses.length];
+if(cur.length<5){r.classList.remove('shake');void r.offsetWidth;r.classList.add('shake');vib(30);return toast('Не хватает букв')}
+const w=cur,res=score(w,g.ans);busy=true;
+[...r.children].forEach((t,i)=>{t.style.animationDelay=i*.25+'s';t.classList.add('flip');setTimeout(()=>{t.classList.add(res[i]);clack(res[i]=='c'?2200:res[i]=='p'?1700:1200)},i*250+250)});
+setTimeout(()=>{g.guesses.push(w);cur='';g.won=w==g.ans;keep();paintKeys();busy=false;const nr=rows[g.guesses.length];if(nr&&!over())nr.children[0].classList.add('n');after()},1500)}
+
+function after(){
+if(mode=='b'){if(!g.live)return;
+if(g.won){g.sc++;g.t=Math.min(120,g.t+10);toast('+10 с');tone(784,.15)}
+else if(over()){g.t=Math.max(0,g.t-15);toast(g.ans.toUpperCase()+'  -15 с');tone(220,.3)}
+else return;
+if(g.t<=0)return endBlitz();
+setTimeout(()=>{if(!g.live)return;const t=g.t,sc=g.sc;g=fresh('b');g.t=t;g.sc=sc;g.live=true;cur='';draw()},700);return}
+if(over())finish();else if(g.guesses.length==5)toast('Последняя попытка')}
+
+function finish(){let gain=0;
+if(!g.done){g.done=true;st.p++;
+if(g.won){st.w++;st.s++;st.m=Math.max(st.m,st.s);st.d[g.guesses.length-1]++;gain=(7-g.guesses.length)*(mode=='d'?2:1);st.c+=gain}else st.s=0;
+put(SK,st);keep()}
+if(g.won){toast('Верно!  +'+gain+' монет');[523,659,784,1047].forEach((f,i)=>tone(f,.2,i*.1));vib([40,30,40])}else{toast(g.ans.toUpperCase());tone(200,.4);vib(80)}
+draw();if(g.won){confetti();bounce()}setTimeout(()=>stats(),1900)}
+
+function endBlitz(){clearInterval(tmr);g.live=false;const sc=g.sc,nb=sc>st.b;
+st.c+=sc;if(nb)st.b=sc;put(SK,st);tone(300,.5);vib([60,40,60]);draw();
+setTimeout(()=>stats('Блиц: '+sc+' слов'+(nb?' · новый рекорд':'')+' · +'+sc+' монет'),700)}
+
+function reveal(){if(over()||st.c<3)return;const got=new Set();
+g.guesses.forEach(w=>[...w].forEach((l,i)=>{if(l==g.ans[i])got.add(i)}));
+const free=[0,1,2,3,4].filter(i=>!got.has(i)&&!(i in g.rev));
+if(!free.length)return toast('Нечего открывать');
+const i=free[Math.random()*free.length|0];g.rev[i]=g.ans[i];st.c-=3;put(SK,st);keep();tone(660);draw()}
+function clearKeys(){if(over()||st.c<2)return;const used=new Set(g.guesses.join('')+g.out.join(''));
+const pool=[..."abcdefghijklmnopqrstuvwxyz"].filter(l=>!g.ans.includes(l)&&!used.has(l));
+if(!pool.length)return toast('Нечего убирать');
+for(let n=0;n<5&&pool.length;n++)g.out.push(pool.splice(Math.random()*pool.length|0,1)[0]);
+st.c-=2;put(SK,st);keep();tone(440);draw()}
+
+function stats(msg){const mx=Math.max(1,...st.d);
+$('#sn').innerHTML=[['Игры',st.p],['Победы %',st.p?Math.round(st.w/st.p*100):0],['Серия',st.s],['Рекорд',st.m],['Блиц',st.b]].map(a=>`<div><b>${a[1]}</b><span>${a[0]}</span></div>`).join('');
+$('#sd').innerHTML=st.d.map((n,i)=>`<div class="d"><span>${i+1}</span><i class="${mode!='b'&&g.won&&g.guesses.length==i+1?'h':''}" style="width:${Math.max(8,n/mx*100)}%">${n}</i></div>`).join('');
+$('#end').textContent=typeof msg=='string'?msg:(mode!='b'&&over()?(g.won?'Верно: ':'Слово: ')+g.ans.toUpperCase()+' — '+WORDS[g.ans].split('|')[0]:'');
+$('#ds').textContent='Звук: '+(st.snd?'вкл':'выкл');
+if(!dlg.open)dlg.showModal()}
+
+kb.addEventListener('pointerdown',e=>{const b=e.target.closest('.k');if(b){e.preventDefault();type(b.dataset.k)}});
+addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||dlg.open)return;
+const k=e.key=='Backspace'?'Del':e.key=='Enter'?'Enter':e.key.toLowerCase();if(k=='Del'||k=='Enter'||/^[a-z]$/.test(k))type(k)});
+$('#bh').onclick=()=>{if(over())return;g.hint=true;keep();draw()};
+$('#pr').onclick=reveal;$('#pc').onclick=clearKeys;
+$('#bs').onclick=()=>stats();$('#bn').onclick=newGame;
+$('#dc').onclick=()=>dlg.close();$('#dn').onclick=()=>{dlg.close();newGame()};
+$('#ds').onclick=()=>{st.snd=st.snd?0:1;put(SK,st);$('#ds').textContent='Звук: '+(st.snd?'вкл':'выкл')};
+tabs.forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+let lt=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lt<350)e.preventDefault();lt=n},{passive:false});document.addEventListener('touchstart',e=>{if(e.touches.length>1)e.preventDefault()},{passive:false});document.addEventListener('gesturestart',e=>e.preventDefault());document.addEventListener('dblclick',e=>e.preventDefault());
+function clack(p){if(!st.snd)return;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();const n=ac.sampleRate*.05|0,b=ac.createBuffer(1,n,ac.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,3);const o=ac.createBufferSource(),f=ac.createBiquadFilter(),g=ac.createGain();o.buffer=b;f.type='bandpass';f.frequency.value=p;f.Q.value=1.2;g.gain.value=.6;o.connect(f).connect(g).connect(ac.destination);o.start()}catch(e){}}
+function confetti(){const c=$('#cf'),x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;const cl=['#4f8a5b','#d1a23b','#efe6d2','#8aa6a3','#b9ad92'],P=Array.from({length:130},()=>({x:innerWidth/2,y:innerHeight*.45,vx:(Math.random()-.5)*14,vy:-Math.random()*16-4,r:Math.random()*6,s:5+Math.random()*7,c:cl[Math.random()*5|0]}));let f=0;(function a(){x.clearRect(0,0,c.width,c.height);P.forEach(p=>{p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.r+=.2;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);x.restore()});if(++f<170)requestAnimationFrame(a);else x.clearRect(0,0,c.width,c.height)})()}
+function bounce(){[...rows[g.guesses.length-1].children].forEach((t,i)=>{t.style.animationDelay=i*.08+'s';t.classList.remove('flip');t.classList.add('win')})}
+setMode('c');
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));
+</script>
+</body>
+</html>
