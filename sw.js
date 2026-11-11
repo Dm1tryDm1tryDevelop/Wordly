@@ -1,4 +1,4 @@
-const V = 'ugadai-slovo-v5';
+const V = 'ugadai-slovo-v8';
 const FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
